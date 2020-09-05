@@ -46,7 +46,7 @@ bot.on('messageDelete', async message => {
                 `**Message:** ${message.cleanContent}`,
             ])
         channel.send(deletemessage);
-        console.log(`[Message Delete] User: ${message.author.tag} | Deleted By: ${entry.executor.tag} | Channel: ${message.channel} | Message: ${message.cleanContent}`);
+        console.log(`[MESSAGE DELETE] User: ${message.author.tag} (${message.author.id}) | Deleted By: ${entry.executor.tag} | Channel: ${message.channel} (${message.channel.id}) | Message: ${message.cleanContent}`);
     }
 });
 
@@ -74,7 +74,7 @@ bot.on('messageUpdate', function (oldMessage, newMessage) {
             ])
         channel.send(editmessage);
     }
-    console.log(`[Message Edit] User: ${newMessage.author.tag} | Channel: ${newMessage.channel} | Before: ${oldMessage.cleanContent} => ${newMessage.cleanContent}`);
+    console.log(`[MESSAGE EDIT] User: ${newMessage.author.tag} (${newMessage.author.id}) | Channel: ${newMessage.channel} (${newMessage.channel.id}) | Before: ${oldMessage.cleanContent} => ${newMessage.cleanContent}`);
 });
 
 bot.on('guildBanAdd', function (guild, user) {
@@ -92,7 +92,7 @@ bot.on('guildBanAdd', function (guild, user) {
         .setDescription(`**👮🔒 ${user} was banned!**`)
         .setTimestamp();
     channel.send(ban)
-    console.log(`[Ban] User: ${user.tag} (${user.id})`);
+    console.log(`[BAN] User: ${user.tag} (${user.id}) | Server: ${guild.name} (${guild.id})`);
 });
 
 
@@ -111,7 +111,7 @@ bot.on('guildBanRemove', async (guild, user) => {
         .setDescription(`**👮🔓 ${user} was unbanned!**`)
         .setTimestamp();
     channel.send(unban)
-    console.log(`[Unban] User: ${user.tag} (${user.id})`);
+    console.log(`[UNBAN] User: ${user.tag} (${user.id}) | Server: ${guild.name} (${guild.id})`);
 });
 
 bot.on('guildCreate', async guild => {
@@ -172,7 +172,7 @@ bot.on('channelCreate', async (channel) => {
         .setTimestamp()
     logging.send(createchannel)
 
-    console.log(`[Channel Created] Channel: #${channel.name} (${channel.id}) | Created At: ${channel.createdAt.toLocaleString()} | Type: ${channel.type}`);
+    console.log(`[CHANNEL CREATED] Channel: #${channel.name} (${channel.id}) | Created At: ${channel.createdAt.toLocaleString()} | Type: ${channel.type}`);
 })
 
 bot.on('channelDelete', async (channel, time) => {
@@ -189,7 +189,7 @@ bot.on('channelDelete', async (channel, time) => {
         .setTimestamp()
     logging.send(createdelete)
 
-    console.log(`[Channel Delete] Channel: #${channel.name} (${channel.id}) | Created At: ${channel.createdAt.toLocaleString()} | Type: ${channel.type}`);
+    console.log(`[CHANNEL DELETE] Channel: #${channel.name} (${channel.id}) | Created At: ${channel.createdAt.toLocaleString()} | Type: ${channel.type}`);
 })
 
 
@@ -206,7 +206,7 @@ bot.on("channelPinsUpdate", function (channel, time) {
         ])
     logging.send(createdelete)
 
-    console.log(`[Channel Pin] Channel: #${channel.name} (${channel.id}) | Time: ${time.toLocaleString()}`);
+    console.log(`[MESSAGE PIN] Channel: #${channel.name} (${channel.id}) | Time: ${time.toLocaleString()}`);
 });
 
 bot.login(token)
