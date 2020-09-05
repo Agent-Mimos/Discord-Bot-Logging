@@ -120,7 +120,7 @@ bot.on('guildCreate', async guild => {
 
     let logs = new Discord.MessageEmbed()
         .setColor("GREEN")
-        .setTitle("Bot has been Invited!")
+        .setTitle("🤖 Bot has been Invited!")
         .setThumbnail(guild.iconURL({
             dynamic: true,
             format: 'png',
@@ -141,7 +141,7 @@ bot.on('guildDelete', async (guild) => {
 
     let logs = new Discord.MessageEmbed()
         .setColor("GREEN")
-        .setTitle("Bot has been Removed!")
+        .setTitle("🤖 Bot has been Removed!")
         .setThumbnail(guild.iconURL({
             dynamic: true,
             format: 'png',
@@ -163,7 +163,7 @@ bot.on('channelCreate', async (channel) => {
 
     let createchannel = new Discord.MessageEmbed()
         .setColor("BLUE")
-        .setTitle("Channel Created")
+        .setTitle("✏️ Channel Created")
         .setDescription([
             `**Name: ${channel.name} (${channel.id}) | ${channel}**`,
             `**Created At: ${channel.createdAt.toLocaleString()}**`,
