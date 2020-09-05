@@ -1,20 +1,20 @@
 const Discord = require("discord.js");
-const {
-    token,
-} = require("./config.json");
 const fs = require("fs");
+const time = require('moment-timezone');
+const moment = require("moment");
 const bot = new Discord.Client({
     disableEveryone: true
 });
 
-const logchannel = "746065467227242597";
+const token = ""; // Put your bot's token here.
+const logchannel = ""; // Channel That The Logs will be sent to.
 
 fs.readdir("./events/", (err, files) => {
     if (err) return console.error(err);
     files.forEach(file => {
         const event = require(`./events/${file}`);
         let eventName = file.split(".")[0];
-        console.log(`Loading ${eventName} event.`);
+        console.log(`✅ ${eventName} event is succesfully loaded.`);
         bot.on(eventName, event.bind(null, bot));
     });
 });
@@ -32,7 +32,13 @@ bot.on('messageDelete', async message => {
         let entry = logses.entries.first();
 
         let deletemessage = new Discord.MessageEmbed()
-            .setTitle("Message Delete")
+            .setThumbnail(message.author.displayAvatarURL({
+                dynamic: true,
+                format: 'png',
+                size: 512
+            }))
+            .setColor("RED")
+            .setTitle("🗑️ Message Delete")
             .setDescription([
                 `**Message Author:** ${message.author}`,
                 `**Deleted By:** ${entry.executor}`,
@@ -40,9 +46,9 @@ bot.on('messageDelete', async message => {
                 `**Message:** ${message.cleanContent}`,
             ])
         channel.send(deletemessage);
+        console.log(`[Message Delete] User: ${message.author.tag} | Deleted By: ${entry.executor.tag} | Channel: ${message.channel} | Message: ${message.cleanContent}`);
     }
 });
-
 
 bot.on('messageUpdate', function (oldMessage, newMessage) {
     if (newMessage.author.bot) return;
@@ -53,19 +59,26 @@ bot.on('messageUpdate', function (oldMessage, newMessage) {
     if (newMessage.channel.type == 'text' && newMessage.cleanContent != oldMessage.cleanContent) {
 
         const editmessage = new Discord.MessageEmbed()
-            .setTitle("Message Edit")
+            .setThumbnail(newMessage.author.displayAvatarURL({
+                dynamic: true,
+                format: 'png',
+                size: 512
+            }))
+            .setColor("YELLOW")
+            .setTitle("📝 Message Edit")
             .setDescription([
                 `**User:** ${newMessage.author}`,
                 `**Channel:** ${newMessage.channel}\n`,
-                `**Before:** ${oldMessage.cleanContent}\n`,
-                `**After:** ${newMessage.cleanContent}\n`,
+                `**Before:** ${oldMessage.cleanContent}`,
+                `**After:** ${newMessage.cleanContent}`,
             ])
         channel.send(editmessage);
     }
+    console.log(`[Message Edit] User: ${newMessage.author.tag} | Channel: ${newMessage.channel} | Before: ${oldMessage.cleanContent} => ${newMessage.cleanContent}`);
 });
 
 bot.on('guildBanAdd', function (guild, user) {
-    let channel = guild.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    let channel = guild.channels.cache.find(ch => ch.id === `${logchannel}`);
     if (!channel) return;
 
     let ban = new Discord.MessageEmbed()
@@ -79,11 +92,12 @@ bot.on('guildBanAdd', function (guild, user) {
         .setDescription(`**👮🔒 ${user} was banned!**`)
         .setTimestamp();
     channel.send(ban)
+    console.log(`[Ban] User: ${user.tag} (${user.id})`);
 });
 
 
 bot.on('guildBanRemove', async (guild, user) => {
-    let channel = guild.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    let channel = guild.channels.cache.find(ch => ch.id === `${logchannel}`);
     if (!channel) return;
 
     let unban = new Discord.MessageEmbed()
@@ -97,6 +111,7 @@ bot.on('guildBanRemove', async (guild, user) => {
         .setDescription(`**👮🔓 ${user} was unbanned!**`)
         .setTimestamp();
     channel.send(unban)
+    console.log(`[Unban] User: ${user.tag} (${user.id})`);
 });
 
 bot.on('guildCreate', async guild => {
@@ -150,28 +165,48 @@ bot.on('channelCreate', async (channel) => {
         .setColor("BLUE")
         .setTitle("Channel Created")
         .setDescription([
-            `**Name: ${channel} (${channel.id})**`,
+            `**Name: ${channel.name} (${channel.id}) | ${channel}**`,
             `**Created At: ${channel.createdAt.toLocaleString()}**`,
             `**Type: ${channel.type}**`,
         ])
         .setTimestamp()
     logging.send(createchannel)
+
+    console.log(`[Channel Created] Channel: #${channel.name} (${channel.id}) | Created At: ${channel.createdAt.toLocaleString()} | Type: ${channel.type}`);
 })
 
-bot.on('channelDelete', async (channel) => {
+bot.on('channelDelete', async (channel, time) => {
     let logging = channel.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
     if (!logging) return;
 
-    let createchannel = new Discord.MessageEmbed()
+    let createdelete = new Discord.MessageEmbed()
         .setColor("RED")
         .setTitle("🗑️ Channel Deleted")
         .setDescription([
             `**Name: ${channel.name} (${channel.id})**`,
-            `**Created At: ${channel.createdAt.toLocaleString()}**`,
             `**Type: ${channel.type}**`,
         ])
         .setTimestamp()
-    logging.send(createchannel)
+    logging.send(createdelete)
+
+    console.log(`[Channel Delete] Channel: #${channel.name} (${channel.id}) | Created At: ${channel.createdAt.toLocaleString()} | Type: ${channel.type}`);
 })
+
+
+bot.on("channelPinsUpdate", function (channel, time) {
+    let logging = channel.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    if (!logging) return;
+
+    let createdelete = new Discord.MessageEmbed()
+        .setColor("RED")
+        .setTitle("📌 Channel Pin")
+        .setDescription([
+            `**Channel: ${channel} (${channel.id})**`,
+            `**Time: ${time.toLocaleString()}**`,
+        ])
+    logging.send(createdelete)
+
+    console.log(`[Channel Pin] Channel: #${channel.name} (${channel.id}) | Time: ${time.toLocaleString()}`);
+});
 
 bot.login(token)
