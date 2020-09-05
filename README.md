@@ -1,2 +1,1 @@
 # Discord Bot Logging
- 
