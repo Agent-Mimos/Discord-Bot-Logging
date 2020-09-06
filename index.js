@@ -7,8 +7,8 @@ const bot = new Discord.Client({
     disableEveryone: true
 });
 
-const token = "Njg3Njg4ODg1ODMyMzg0NTE3.XmpaLw.EhzkJPLwkfLvY41ZFeLAHcU56zo"; // Put your bot's token here.
-const logchannel = "746065467227242597"; // Channel That The Logs will be sent to.
+const token = ""; // Put your bot's token here.
+const logchannel = ""; // Channel That The Logs will be sent to.
 
 
 fs.readdir("./events/", (err, files) => {
