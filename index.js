@@ -3,13 +3,38 @@ const fs = require("fs");
 const date = require('dateformat')
 const time = require('moment-timezone');
 const moment = require("moment");
+const {
+    token,
+    logchannel,
+    prefix
+} = require("./config.json")
 const bot = new Discord.Client({
     disableEveryone: true
 });
 
-const token = ""; // Put your bot's token here.
-const logchannel = ""; // Channel That The Logs will be sent to.
+bot.commands = new Discord.Collection();
+bot.aliases = new Discord.Collection();
 
+fs.readdir("./commands/", (err, files) => {
+
+    if (err) console.log(err)
+
+    let jsfile = files.filter(f => f.split(".").pop() === "js")
+    if (jsfile.length <= 0) {
+        return console.log("[LOGS] Couldn't Find Commands!");
+    }
+
+    jsfile.forEach((f, i) => {
+        let props = require(`./commands/${f}`);
+        console.log(`✅ ${f} is succesfully loaded.`);
+        bot.commands.set(props.config.name, props);
+        let pull = require(`./commands/${f}`);
+        bot.commands.set(pull.config.name, pull);
+        pull.config.aliases.forEach(alias => {
+            bot.aliases.set(alias, pull.config.name)
+        });
+    });
+});
 
 fs.readdir("./events/", (err, files) => {
     if (err) return console.error(err);
@@ -19,6 +44,43 @@ fs.readdir("./events/", (err, files) => {
         console.log(`✅ ${eventName} event is succesfully loaded.`);
         bot.on(eventName, event.bind(null, bot));
     });
+});
+
+bot.on("message", async (message) => {
+    if (message.author.bot || message.channel.type === "dm") return;
+    if (!message.guild) return;
+    if (!message.channel.send) return;
+
+    let messageArray = message.content.split(" ");
+    let cmd = messageArray[0].toLowerCase();
+    let args = messageArray.slice(1);
+    if (!message.content.startsWith(prefix)) return;
+
+    try {
+        let commandfile = bot.commands.get(cmd.slice(prefix.length)) || bot.commands.get(bot.aliases.get(cmd.slice(prefix.length)));
+        if (commandfile) commandfile.run(bot, message, args);
+        if (!commandfile) return;
+        console.log("[" + moment.tz("America/New_York").format('HH:mm A') + `\u001b[0m` + "]" + ` Server: ${message.guild.name} | Channel: #${message.channel.name} | ${message.author.tag} used ${cmd}`)
+
+        let channel = message.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+        if (!channel) return;
+
+        let botlogs = new Discord.MessageEmbed()
+            .setTitle("Command Logs")
+            .setColor("GREEN")
+            .setDescription([
+                `User: **${message.author.tag} (${message.author.id})**`,
+                `Command: **${cmd}**`,
+                `Server: **${message.guild.name} (${message.guild.id})**`,
+                `Channel: **#${message.channel.name} (${message.channel.id})**`
+            ])
+            .setFooter(`Date: ${message.createdAt.toLocaleDateString()}`)
+            .setTimestamp()
+        channel.send(botlogs);
+    } catch (err) {
+        console.log(err)
+        return message.channel.send(new Discord.MessageEmbed().setColor("RED").setDescription("**Something is going on, contact the owner of the bot!**"))
+    }
 });
 
 bot.on("warn", async (info) => {
@@ -36,7 +98,6 @@ bot.on("resume", async (replayed) => {
 bot.on("disconnect", async (event, bot) => {
     console.log(`${bot.user.tag} disconnect`);
 });
-
 
 bot.on('messageDelete', async message => {
     if (message.channel.type == 'text') {
@@ -455,7 +516,7 @@ bot.on("messageReactionRemoveAll", async (message) => {
         .setTimestamp();
 
     logChannel.send(messageReactionRemoveAll).catch();
-    console.log(`[Remove All Reactions] Channel: ${message.channel} (${message.channel.id}) | Message: ${message}`);
+    console.log(`[REMOVED ALL REACTIONS] Channel: ${message.channel} (${message.channel.id}) | Message: ${message}`);
     logChannel.send(`${message} | ${message.reactions}`)
 });
 
