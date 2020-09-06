@@ -5,8 +5,8 @@ const bot = new Discord.Client({
     disableEveryone: true
 });
 
-const token = ""; // Put your bot's token here.
-const logchannel = ""; // Channel That The Logs will be sent to.
+const token = "Njg3Njg4ODg1ODMyMzg0NTE3.XmpaLw.txKBqr1YQg_aYePp77c_9B_lqDE"; // Put your bot's token here.
+const logchannel = "746065467227242597"; // Channel That The Logs will be sent to.
 
 fs.readdir("./events/", (err, files) => {
     if (err) return console.error(err);
@@ -160,13 +160,20 @@ bot.on('channelCreate', async (channel) => {
     let logging = channel.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
     if (!logging) return;
 
+    let types = {
+        text: 'Text Channel',
+        voice: 'Voice Channel',
+        category: "Category Channel",
+        null: 'None',
+    };
+
     let createchannel = new Discord.MessageEmbed()
         .setColor("BLUE")
         .setTitle("✏️ Channel Created")
         .setDescription([
             `**Name: ${channel.name} (${channel.id}) | ${channel}**`,
             `**Created At: ${channel.createdAt.toLocaleString()}**`,
-            `**Type: ${channel.type}**`,
+            `**Type: ${types[channel.type]}**`,
         ])
         .setTimestamp()
     logging.send(createchannel)
@@ -178,12 +185,19 @@ bot.on('channelDelete', async (channel) => {
     let logging = channel.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
     if (!logging) return;
 
+    let types = {
+        text: 'Text Channel',
+        voice: 'Voice Channel',
+        category: "Category Channel",
+        null: 'None',
+    };
+
     let createdelete = new Discord.MessageEmbed()
         .setColor("RED")
         .setTitle("🗑️ Channel Deleted")
         .setDescription([
             `**Name: ${channel.name} (${channel.id})**`,
-            `**Type: ${channel.type}**`,
+            `**Type: ${types[channel.type]}**`,
         ])
         .setTimestamp()
     logging.send(createdelete)
@@ -227,6 +241,28 @@ bot.on("roleCreate", async (role) => {
         ])
     logging.send(rolecreate)
     console.log(`[ROLE CREATED] Role: ${role} (${role.id}) | Created At: ${role.createdAt.toLocaleString()} | Permission: ${perms}`);
+});
+
+bot.on("roleDelete", async (role) => {
+    let logging = role.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    if (!logging) return;
+
+    const perms = role.permissions.toArray().map(e => {
+        const words = e.split("_").map(x => x[0] + x.slice(1).toLowerCase());
+        return words.join(" ");
+    }).join(", ");
+
+    let roledelete = new Discord.MessageEmbed()
+        .setColor("RED")
+        .setTitle("🗑️ Role Delete")
+        .setDescription([
+            `**Role: ${role.name} (${role.id})**`,
+            `**Created At: ${role.createdAt.toLocaleString()}**`,
+            `**Hex Color: ${role.hexColor}**`,
+            `**Permission:** \n ${perms}`
+        ])
+    logging.send(roledelete)
+    console.log(`[ROLE DELETE] Role: ${role} (${role.id}) | Permission: ${perms}`);
 });
 
 bot.on("emojiCreate", async (emoji) => {
@@ -346,5 +382,42 @@ bot.on("guildMemberRemove", async (member) => {
     logging.send(welcome)
     console.log(`[MEMBER LEFT] Name: ${member.user.tag} (${member.user.id}) | Account Created: ${date(member.user.createdAt, "dd/mm/yyyy - HH:MM:ss")}`);
 });
+
+bot.on("channelUpdate", async (oldChannel, newChannel) => {
+    let oldCategory = oldChannel.parent;
+    let newCategory = newChannel.parent;
+    let guildsChannel = newChannel.guild;
+    if (!newCategory) newCategory = 'None';
+    if (!guildsChannel || !guildsChannel.available) return;
+
+    let types = {
+        text: 'Text Channel',
+        voice: 'Voice Channel',
+        category: "Category Channel",
+        null: 'None',
+    };
+
+    let logChannel = oldChannel.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    if (!logChannel) return;
+    if (!logChannel.permissionsFor(oldChannel.guild.me).has('VIEW_CHANNEL')) return;
+    if (!logChannel.permissionsFor(oldChannel.guild.me).has('SEND_MESSAGES')) return;
+
+    if (oldChannel.name !== newChannel.name) {
+        let channelNameUpdateEmbed = new Discord.MessageEmbed()
+            .setColor('YELLOW')
+            .setTitle(`📝 Channel Name Updated`)
+            .setDescription([
+                `**Old Channel Name: ${oldChannel.name}**`,
+                `**New Channel Name: ${newChannel.name}**`,
+                `**Channel Type: ${types[newChannel.type]}**`,
+                `**Channel Category: ${newCategory}**`,
+                `**Channel ID: ${newChannel.id}**`,
+            ])
+            .setTimestamp();
+
+        logChannel.send(channelNameUpdateEmbed).catch();
+    }
+});
+
 
 bot.login(token)
