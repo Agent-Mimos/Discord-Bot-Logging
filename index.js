@@ -1,7 +1,6 @@
 const Discord = require("discord.js");
 const fs = require("fs");
-const time = require('moment-timezone');
-const moment = require("moment");
+const date = require('dateformat')
 const bot = new Discord.Client({
     disableEveryone: true
 });
@@ -40,13 +39,13 @@ bot.on('messageDelete', async message => {
             .setColor("RED")
             .setTitle("🗑️ Message Delete")
             .setDescription([
-                `**Message Author:** ${message.author}`,
-                `**Deleted By:** ${entry.executor}`,
-                `**Channel:** ${message.channel}\n`,
-                `**Message:** ${message.cleanContent}`,
+                `**Message Author: ${message.author}**`,
+                `**Deleted By: ${entry.executor}**`,
+                `**Channel: ${message.channel}**\n`,
+                `**Message: ${message.cleanContent}**`,
             ])
         channel.send(deletemessage);
-        console.log(`[MESSAGE DELETE] User: ${message.author.tag} (${message.author.id}) | Deleted By: ${entry.executor.tag} | Channel: ${message.channel} (${message.channel.id}) | Message: ${message.cleanContent}`);
+        console.log(`[MESSAGE DELETE] User: ${message.author.tag} (${message.author.id}) | Deleted By: ${entry.executor.tag} | Channel: #${message.channel.name} (${message.channel.id}) | Message: ${message.cleanContent}`);
     }
 });
 
@@ -67,10 +66,10 @@ bot.on('messageUpdate', function (oldMessage, newMessage) {
             .setColor("YELLOW")
             .setTitle("📝 Message Edit")
             .setDescription([
-                `**User:** ${newMessage.author}`,
-                `**Channel:** ${newMessage.channel}\n`,
-                `**Before:** ${oldMessage.cleanContent}`,
-                `**After:** ${newMessage.cleanContent}`,
+                `**User: ${newMessage.author}**`,
+                `**Channel: ${newMessage.channel}**\n`,
+                `**Before: ${oldMessage.cleanContent}**`,
+                `**After: ${newMessage.cleanContent}**`,
             ])
         channel.send(editmessage);
     }
@@ -175,7 +174,7 @@ bot.on('channelCreate', async (channel) => {
     console.log(`[CHANNEL CREATED] Channel: #${channel.name} (${channel.id}) | Created At: ${channel.createdAt.toLocaleString()} | Type: ${channel.type}`);
 })
 
-bot.on('channelDelete', async (channel, time) => {
+bot.on('channelDelete', async (channel) => {
     let logging = channel.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
     if (!logging) return;
 
@@ -189,7 +188,7 @@ bot.on('channelDelete', async (channel, time) => {
         .setTimestamp()
     logging.send(createdelete)
 
-    console.log(`[CHANNEL DELETE] Channel: #${channel.name} (${channel.id}) | Created At: ${channel.createdAt.toLocaleString()} | Type: ${channel.type}`);
+    console.log(`[CHANNEL DELETE] Channel: #${channel.name} (${channel.id}) | Type: ${channel.type}`);
 })
 
 
@@ -197,16 +196,155 @@ bot.on("channelPinsUpdate", function (channel, time) {
     let logging = channel.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
     if (!logging) return;
 
-    let createdelete = new Discord.MessageEmbed()
+    let pin = new Discord.MessageEmbed()
         .setColor("RED")
         .setTitle("📌 Channel Pin")
         .setDescription([
             `**Channel: ${channel} (${channel.id})**`,
             `**Time: ${time.toLocaleString()}**`,
         ])
-    logging.send(createdelete)
+    logging.send(pin)
 
     console.log(`[MESSAGE PIN] Channel: #${channel.name} (${channel.id}) | Time: ${time.toLocaleString()}`);
+});
+
+bot.on("roleCreate", async (role) => {
+    let logging = role.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    if (!logging) return;
+
+    const perms = role.permissions.toArray().map(e => {
+        const words = e.split("_").map(x => x[0] + x.slice(1).toLowerCase());
+        return words.join(" ");
+    }).join(", ");
+
+    let rolecreate = new Discord.MessageEmbed()
+        .setColor("BLUE")
+        .setTitle("✏️ Role Created")
+        .setDescription([
+            `**Role: ${role} (${role.id})**`,
+            `**Created At: ${role.createdAt.toLocaleString()}**`
+            `**Permission:** \n ${perms}`
+        ])
+    logging.send(rolecreate)
+    console.log(`[ROLE CREATED] Role: ${role} (${role.id}) | Created At: ${role.createdAt.toLocaleString()} | Permission: ${perms}`);
+});
+
+bot.on("emojiCreate", async (emoji) => {
+    let logging = emoji.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    if (!logging) return;
+
+    let animated = {
+        "false": "No",
+        "true": "Yes",
+    }
+
+    let rolecreate = new Discord.MessageEmbed()
+        .setColor("BLUE")
+        .setTitle("✏️ Emoji Created")
+        .setDescription([
+            `**Name: ${emoji.name} (${emoji.id})**`,
+            `**Emoji: ${emoji}**`,
+            `**Image: [URL](${`${emoji.url}`})**`,
+            `**Animated: ${animated[emoji.animated]}**`
+        ])
+        .setThumbnail(emoji.url)
+    logging.send(rolecreate)
+    console.log(`[EMOJI CREATED] Name: ${emoji.name} | ID: ${emoji.id} | Animated: ${animated[emoji.animated]} | URL: ${emoji.url}`);
+});
+
+bot.on("emojiUpdate", async (oldEmoji, newEmoji) => {
+    let logging = newEmoji.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    if (!logging) return;
+
+    let animated = {
+        "false": "No",
+        "true": "Yes",
+    }
+
+    let rolecreate = new Discord.MessageEmbed()
+        .setColor("YELLOW")
+        .setTitle("📝 Emoji Updated")
+        .setDescription([
+            `**Old Name: ${oldEmoji.name}**`,
+            `**New Name: ${newEmoji.name}**`,
+            `**ID: ${newEmoji.id}**`,
+            `**Emoji: ${newEmoji}**`,
+            `**Image: [URL](${`${newEmoji.url}`})**`,
+            `**Animated: ${animated[newEmoji.animated]}**`
+        ])
+        .setThumbnail(newEmoji.url)
+    logging.send(rolecreate)
+    console.log(`[EMOJI UPDATED] Old Name: ${oldEmoji.name} | New Name: ${newEmoji.name} | ID: ${newEmoji.id} | Animated: ${animated[newEmoji.animated]} | URL: ${newEmoji.url}`);
+});
+
+bot.on("emojiDelete", async (emoji) => {
+    let logging = emoji.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    if (!logging) return;
+
+    let animated = {
+        "false": "No",
+        "true": "Yes",
+    }
+
+    let rolecreate = new Discord.MessageEmbed()
+        .setColor("RED")
+        .setTitle("🗑️ Emoji Deleted")
+        .setDescription([
+            `**Name: ${emoji.name}**`,
+            `**ID: ${emoji.id}**`,
+            `**Image: [URL](${`${emoji.url}`})**`,
+            `**Animated: ${animated[emoji.animated]}**`
+        ])
+        .setThumbnail(emoji.url)
+    logging.send(rolecreate)
+    console.log(`[EMOJI DELETED] Name: ${emoji.name} | Animated: ${animated[emoji.animated]} | URL: ${emoji.url}`);
+});
+
+
+bot.on("guildMemberAdd", async (member) => {
+    let logging = member.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    if (!logging) return;
+
+    let welcome = new Discord.MessageEmbed()
+        .setColor("BLUE")
+        .setTitle("Member Joined")
+        .setThumbnail(member.user.displayAvatarURL({
+            dynamic: true,
+            format: 'png',
+            size: 512
+        }))
+        .setDescription([
+            `**Name: ${member.user.tag}**`,
+            `**ID: ${member.user.id}**`,
+            `**Account Created: ${date(member.user.createdAt, "dd/mm/yyyy - HH:MM:ss")}**`,
+            `**Mention: ${member}**`
+        ])
+        .setTimestamp()
+    logging.send(welcome)
+    console.log(`[MEMBER JOINED] Name: ${member.user.tag} (${member.user.id}) | Account Created: ${date(member.user.createdAt, "dd/mm/yyyy - HH:MM:ss")}`);
+});
+
+bot.on("guildMemberRemove", async (member) => {
+    let logging = member.guild.channels.cache.find(ch => ch.id === `${logchannel}`);
+    if (!logging) return;
+
+    let welcome = new Discord.MessageEmbed()
+        .setColor("RED")
+        .setTitle("Member Left")
+        .setThumbnail(member.user.displayAvatarURL({
+            dynamic: true,
+            format: 'png',
+            size: 512
+        }))
+        .setDescription([
+            `**Name: ${member.user.tag}**`,
+            `**ID: ${member.user.id}**`,
+            `**Account Created: ${date(member.user.createdAt, "dd/mm/yyyy - HH:MM:ss")}**`,
+            `**Mention: ${member}**`
+        ])
+        .setTimestamp();
+    logging.send(welcome)
+    console.log(`[MEMBER LEFT] Name: ${member.user.tag} (${member.user.id}) | Account Created: ${date(member.user.createdAt, "dd/mm/yyyy - HH:MM:ss")}`);
 });
 
 bot.login(token)

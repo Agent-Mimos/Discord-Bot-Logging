@@ -1,7 +1,7 @@
 {
   "name": "logging-discord-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "<div align=\"center\">\r   <a href=\"https://discord.gg/P8xtvQT\">\r     <img src=\"https://www.iconfinder.com/data/icons/free-social-media-set/24/discord-512.png\" alt=\"Discord\" width=\"80\"/>\r   </a>\r </div>",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,9 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dateformat": "^3.0.3",
     "discord.js": "^12.3.1",
-    "fs": "0.0.1-security",
-    "moment": "^2.27.0",
-    "moment-timezone": "^0.5.31"
+    "fs": "0.0.1-security"
   }
 }
