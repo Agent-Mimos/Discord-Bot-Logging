@@ -11,6 +11,9 @@
   "dependencies": {
     "dateformat": "^3.0.3",
     "discord.js": "^12.3.1",
-    "fs": "0.0.1-security"
+    "fs": "0.0.1-security",
+    "moment": "^2.27.0",
+    "moment-timezone": "^0.5.31",
+    "node-fetch": "^2.6.1"
   }
 }
